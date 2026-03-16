@@ -8,6 +8,7 @@ function Dashboard() {
     navigate("/");
   };
 
+    
   return (
     <div style={{ display: "flex", height: "100vh", fontFamily: "Arial" }}>
       {/* Sidebar */}

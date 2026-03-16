@@ -9,6 +9,9 @@ function RegisterLogin() {
     name: "",
     email: "",
     password: "",
+    age: "",
+    contact: "",
+    gender: "",
     role: "Patient",
   });
 
@@ -20,13 +23,8 @@ function RegisterLogin() {
 
   const registerUser = async () => {
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        form,
-      );
-
+      await axios.post("http://localhost:5000/api/auth/register", form);
       setMessage("User registered successfully");
-      console.log(res.data);
     } catch (err) {
       setMessage(err.response?.data?.message || "Error registering user");
     }
@@ -43,77 +41,165 @@ function RegisterLogin() {
 
       localStorage.setItem("token", user.token);
       localStorage.setItem("role", user.role);
+      localStorage.setItem("name", user.name);
 
-      setMessage("Login successful");
-
-      // Role based redirect
-      if (user.role === "Patient") {
-        navigate("/appointment");
-      } else if (user.role === "Doctor") {
-        navigate("/doctor-dashboard");
-      } else if (user.role === "Receptionist") {
-        navigate("/dashboard");
-      } else if (user.role === "Admin") {
-        navigate("/admin-dashboard");
-      }
+      if (user.role === "Patient") navigate("/appointment");
+      else if (user.role === "Doctor") navigate("/doctor-dashboard");
+      else if (user.role === "Receptionist") navigate("/dashboard");
+      else if (user.role === "Admin") navigate("/admin-dashboard");
     } catch (err) {
-      setMessage(err.response?.data?.message || "Login failed");
+      setMessage("Login failed");
     }
   };
 
   return (
-    <div style={{ padding: "40px", fontFamily: "Arial" }}>
-      <h1>Hospital Management System</h1>
+    <div style={pageStyle}>
+      {/* Title */}
 
-      <h2>Register / Login</h2>
+      <h1 style={titleStyle}>Hospital Management System</h1>
 
-      <input
-        type="text"
-        name="name"
-        placeholder="Name"
-        onChange={handleChange}
-      />
-      <br />
-      <br />
+      {/* Card */}
 
-      <input
-        type="email"
-        name="email"
-        placeholder="Email"
-        onChange={handleChange}
-      />
-      <br />
-      <br />
+      <div style={cardStyle}>
+        <h2 style={{ textAlign: "center", marginBottom: "20px" ,color:"darkblue"}}>
+          Register / Login
+        </h2>
 
-      <input
-        type="password"
-        name="password"
-        placeholder="Password"
-        onChange={handleChange}
-      />
-      <br />
-      <br />
+        <div style={formStyle}>
+          <input
+            name="name"
+            placeholder="Name"
+            onChange={handleChange}
+            style={inputStyle}
+          />
 
-      <select name="role" onChange={handleChange}>
-        <option value="Patient">Patient</option>
-        <option value="Doctor">Doctor</option>
-        <option value="Admin">Admin</option>
-        <option value="Receptionist">Receptionist</option>
+          <input
+            name="email"
+            placeholder="Email"
+            onChange={handleChange}
+            style={inputStyle}
+          />
 
-      </select>
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            onChange={handleChange}
+            style={inputStyle}
+          />
 
-      <br />
-      <br />
+          <input
+            name="age"
+            placeholder="Age"
+            onChange={handleChange}
+            style={inputStyle}
+          />
 
-      <button onClick={registerUser}>Register</button>
+          <input
+            name="contact"
+            placeholder="Contact"
+            onChange={handleChange}
+            style={inputStyle}
+          />
 
-      <button onClick={loginUser} style={{ marginLeft: "10px" }}>
-        Login
-      </button>
+          <select name="gender" onChange={handleChange} style={inputStyle}>
+            <option value="">Select Gender</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
 
-      <p>{message}</p>
+          <select name="role" onChange={handleChange} style={inputStyle}>
+            <option value="Patient">Patient</option>
+            <option value="Doctor">Doctor</option>
+            <option value="Receptionist">Receptionist</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+
+        <div style={buttonRow}>
+          <button onClick={registerUser} style={registerBtn}>
+            Register
+          </button>
+
+          <button onClick={loginUser} style={loginBtn}>
+            Login
+          </button>
+        </div>
+
+        {message && (
+          <p style={{ marginTop: "15px", textAlign: "center", color: "red" }}>
+            {message}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
+
+const pageStyle = {
+  minHeight: "100vh",
+  width: "100vw",
+  background: "linear-gradient(135deg,#0f5cd6,#1e88e5)",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const titleStyle = {
+  color: "white",
+  marginBottom: "30px",
+  fontSize: "32px",
+  fontWeight: "bold",
+};
+
+const cardStyle = {
+  background: "white",
+  padding: "35px",
+  borderRadius: "12px",
+  width: "380px",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+};
+
+const formStyle = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "12px",
+};
+
+const inputStyle = {
+  padding: "10px",
+  borderRadius: "6px",
+  border: "1px solid #ccc",
+  background: "#f5f7fa",
+  color:"black",
+};
+
+const buttonRow = {
+  display: "flex",
+  gap: "10px",
+  marginTop: "20px",
+};
+
+const registerBtn = {
+  flex: 1,
+  padding: "10px",
+  background: "#1e88e5",
+  color: "white",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+};
+
+const loginBtn = {
+  flex: 1,
+  padding: "10px",
+  background: "#43a047",
+  color: "white",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+};
 
 export default RegisterLogin;

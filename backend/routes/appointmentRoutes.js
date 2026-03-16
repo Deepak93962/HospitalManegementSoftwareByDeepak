@@ -4,11 +4,27 @@ const router = express.Router();
 const {
   createAppointment,
   getAppointments,
+  getDoctorAppointments,
+  updateAppointmentStatus
 } = require("../controllers/appointmentController");
 
 const { protect } = require("../middleware/auth");
 
+
+// Patient books appointment
 router.post("/", protect, createAppointment);
+
+
+// Admin / Receptionist see all appointments
 router.get("/", protect, getAppointments);
+
+
+// ⭐ Doctor see only his appointments
+router.get("/doctor", protect, getDoctorAppointments);
+
+
+// ⭐ Doctor update appointment status
+router.put("/:id/status", protect, updateAppointmentStatus);
+
 
 module.exports = router;
