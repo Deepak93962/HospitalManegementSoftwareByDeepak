@@ -3,6 +3,7 @@ import axios from "axios";
 
 function Appointment() {
   const [doctors, setDoctors] = useState([]);
+
   const [form, setForm] = useState({
     doctor: "",
     date: "",
@@ -16,40 +17,63 @@ function Appointment() {
   }, []);
 
   const fetchDoctors = async () => {
-    const res = await axios.get("http://localhost:5000/api/users/doctors");
-    setDoctors(res.data);
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get("http://localhost:5000/api/users/doctors", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setDoctors(res.data);
+    } catch (error) {
+      console.error("Error fetching doctors");
+    }
   };
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const bookAppointment = async () => {
-    const token = localStorage.getItem("token");
+    if (!form.doctor || !form.date || !form.reason) {
+      setMessage("Please fill all fields");
+      return;
+    }
 
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/appointments",
-        form,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const token = localStorage.getItem("token");
+
+      await axios.post("http://localhost:5000/api/appointments", form, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       setMessage("Appointment booked successfully");
+
+      setForm({
+        doctor: "",
+        date: "",
+        reason: "",
+      });
     } catch (error) {
-      setMessage("Error booking appointment");
+      setMessage(error.response?.data?.message || "Error booking appointment");
     }
   };
 
   return (
-    <div style={{ padding: "40px" }}>
+    <div style={{ padding: "40px", fontFamily: "Arial" }}>
       <h1>Book Appointment</h1>
 
-      <select name="doctor" onChange={handleChange}>
-        <option>Select Doctor</option>
+      <br />
+
+      <select name="doctor" value={form.doctor} onChange={handleChange}>
+        <option value="">Select Doctor</option>
 
         {doctors.map((doc) => (
           <option key={doc._id} value={doc._id}>
@@ -61,7 +85,12 @@ function Appointment() {
       <br />
       <br />
 
-      <input type="date" name="date" onChange={handleChange} />
+      <input
+        type="date"
+        name="date"
+        value={form.date}
+        onChange={handleChange}
+      />
 
       <br />
       <br />
@@ -70,6 +99,7 @@ function Appointment() {
         type="text"
         name="reason"
         placeholder="Reason"
+        value={form.reason}
         onChange={handleChange}
       />
 

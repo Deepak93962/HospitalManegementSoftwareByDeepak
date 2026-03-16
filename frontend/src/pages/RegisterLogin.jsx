@@ -86,6 +86,8 @@ function RegisterLogin() {
         <option value="Patient">Patient</option>
         <option value="Doctor">Doctor</option>
         <option value="Admin">Admin</option>
+        <option value="Receptionist">Receptionist</option>
+
       </select>
 
       <br />
