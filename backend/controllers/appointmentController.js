@@ -60,15 +60,18 @@ const updateAppointmentStatus = async (req, res) => {
 
     const { status } = req.body;
 
-    const appointment = await Appointment.findById(req.params.id);
-
+     const appointment = await Appointment.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
     if (!appointment) {
       return res.status(404).json({ message: "Appointment not found" });
     }
 
     appointment.status = status;
 
-    await appointment.save();
+    //await appointment.save();
 
     res.json({ message: "Status updated", appointment });
 

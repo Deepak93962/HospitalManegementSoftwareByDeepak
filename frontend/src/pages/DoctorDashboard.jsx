@@ -52,33 +52,50 @@ function DoctorDashboard() {
 
         <table style={tableStyle}>
           <thead>
-            <tr>
-              <th>Patient</th>
-              <th>Email</th>
-              <th>Date</th>
-              <th>Slot</th>
-              <th>Reason</th>
-              <th>Status</th>
-              <th>Action</th>
+            <tr style={headerRow}>
+              <th style={thStyle}>Patient</th>
+              <th style={thStyle}>Email</th>
+              <th style={thStyle}>Date</th>
+              <th style={thStyle}>Slot</th>
+              <th style={thStyle}>Reason</th>
+              <th style={thStyle}>Status</th>
+              <th style={thStyle}>Action</th>
             </tr>
           </thead>
 
           <tbody>
             {appointments.map((a) => (
-              <tr key={a._id}>
-                <td>{a.patient?.name}</td>
-                <td>{a.patient?.email}</td>
-                <td>{new Date(a.date).toLocaleDateString()}</td>
-                <td>{a.slot}</td>
-                <td>{a.reason}</td>
-                <td>{a.status}</td>
+              <tr key={a._id} style={rowStyle}>
+                <td style={tdStyle}>{a.patient?.name}</td>
+                <td style={tdStyle}>{a.patient?.email}</td>
+                <td style={tdStyle}>{new Date(a.date).toLocaleDateString()}</td>
+                <td style={tdStyle}>{a.slot}</td>
+                <td style={tdStyle}>{a.reason}</td>
 
-                <td>
+                <td style={tdStyle}>
+                  <span
+                    style={{
+                      ...statusBadge,
+                      backgroundColor:
+                        a.status === "Confirmed"
+                          ? "#16a34a"
+                          : a.status === "Cancelled"
+                            ? "#dc2626"
+                            : a.status === "Completed"
+                              ? "#2563eb"
+                              : "#f59e0b",
+                    }}
+                  >
+                    {a.status}
+                  </span>
+                </td>
+
+                <td style={tdStyle}>
                   <select
-                     
+                    style={selectStyle}
                     onChange={(e) => updateStatus(a._id, e.target.value)}
                   >
-                    <option value="Pending">Pending</option>
+                    <option value="">Update</option>
                     <option value="Confirmed">Confirm</option>
                     <option value="Completed">Complete</option>
                     <option value="Cancelled">Cancel</option>
@@ -115,6 +132,43 @@ const tableStyle = {
   width: "100%",
   borderCollapse: "collapse",
   marginTop: "20px",
+};
+const headerRow = {
+  background: "#f3f4f6",
+  textAlign: "left",
+};
+
+const thStyle = {
+  padding: "12px",
+  fontWeight: "600",
+  borderBottom: "2px solid #e5e7eb",
+  color: "#374151",
+};
+
+const tdStyle = {
+  padding: "12px",
+  borderBottom: "1px solid #e5e7eb",
+  color: "#374151",
+};
+
+const rowStyle = {
+  transition: "background 0.2s",
+};
+
+const statusBadge = {
+  padding: "4px 10px",
+  borderRadius: "20px",
+  color: "white",
+  fontSize: "12px",
+  fontWeight: "600",
+};
+
+const selectStyle = {
+  padding: "6px 8px",
+  borderRadius: "6px",
+  border: "1px solid #d1d5db",
+  background: "#f9fafb",
+  cursor: "pointer",
 };
 
 export default DoctorDashboard;

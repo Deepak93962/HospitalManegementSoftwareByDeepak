@@ -91,6 +91,7 @@ function Appointment() {
       setForm({
         doctor: "",
         date: "",
+        slot:"",
         reason: "",
       });
     } catch (error) {
