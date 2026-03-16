@@ -56,6 +56,7 @@ function DoctorDashboard() {
               <th>Patient</th>
               <th>Email</th>
               <th>Date</th>
+              <th>Slot</th>
               <th>Reason</th>
               <th>Status</th>
               <th>Action</th>
@@ -68,12 +69,16 @@ function DoctorDashboard() {
                 <td>{a.patient?.name}</td>
                 <td>{a.patient?.email}</td>
                 <td>{new Date(a.date).toLocaleDateString()}</td>
+                <td>{a.slot}</td>
                 <td>{a.reason}</td>
                 <td>{a.status}</td>
 
                 <td>
-                  <select onChange={(e) => updateStatus(a._id, e.target.value)}>
-                    <option>Update</option>
+                  <select
+                     
+                    onChange={(e) => updateStatus(a._id, e.target.value)}
+                  >
+                    <option value="Pending">Pending</option>
                     <option value="Confirmed">Confirm</option>
                     <option value="Completed">Complete</option>
                     <option value="Cancelled">Cancel</option>

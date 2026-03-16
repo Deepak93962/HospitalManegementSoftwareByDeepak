@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 function RegisterLogin() {
   const navigate = useNavigate();
 
+  const [isLogin, setIsLogin] = useState(false);
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -24,6 +26,7 @@ function RegisterLogin() {
   const registerUser = async () => {
     try {
       await axios.post("http://localhost:5000/api/auth/register", form);
+
       setMessage("User registered successfully");
     } catch (err) {
       setMessage(err.response?.data?.message || "Error registering user");
@@ -54,24 +57,28 @@ function RegisterLogin() {
 
   return (
     <div style={pageStyle}>
-      {/* Title */}
-
       <h1 style={titleStyle}>Hospital Management System</h1>
 
-      {/* Card */}
-
       <div style={cardStyle}>
-        <h2 style={{ textAlign: "center", marginBottom: "20px" ,color:"darkblue"}}>
-          Register / Login
+        <h2
+          style={{
+            textAlign: "center",
+            marginBottom: "20px",
+            color: "darkblue",
+          }}
+        >
+          {isLogin ? "Login" : "Register"}
         </h2>
 
         <div style={formStyle}>
-          <input
-            name="name"
-            placeholder="Name"
-            onChange={handleChange}
-            style={inputStyle}
-          />
+          {!isLogin && (
+            <input
+              name="name"
+              placeholder="Name"
+              onChange={handleChange}
+              style={inputStyle}
+            />
+          )}
 
           <input
             name="email"
@@ -88,44 +95,65 @@ function RegisterLogin() {
             style={inputStyle}
           />
 
-          <input
-            name="age"
-            placeholder="Age"
-            onChange={handleChange}
-            style={inputStyle}
-          />
+          {!isLogin && (
+            <>
+              <input
+                name="age"
+                placeholder="Age"
+                onChange={handleChange}
+                style={inputStyle}
+              />
 
-          <input
-            name="contact"
-            placeholder="Contact"
-            onChange={handleChange}
-            style={inputStyle}
-          />
+              <input
+                name="contact"
+                placeholder="Contact"
+                onChange={handleChange}
+                style={inputStyle}
+              />
 
-          <select name="gender" onChange={handleChange} style={inputStyle}>
-            <option value="">Select Gender</option>
-            <option>Male</option>
-            <option>Female</option>
-            <option>Other</option>
-          </select>
+              <select name="gender" onChange={handleChange} style={inputStyle}>
+                <option value="">Select Gender</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+              </select>
 
-          <select name="role" onChange={handleChange} style={inputStyle}>
-            <option value="Patient">Patient</option>
-            <option value="Doctor">Doctor</option>
-            <option value="Receptionist">Receptionist</option>
-            <option value="Admin">Admin</option>
-          </select>
+              <select name="role" onChange={handleChange} style={inputStyle}>
+                <option value="Patient">Patient</option>
+                <option value="Doctor">Doctor</option>
+                <option value="Receptionist">Receptionist</option>
+                <option value="Admin">Admin</option>
+              </select>
+            </>
+          )}
         </div>
 
         <div style={buttonRow}>
-          <button onClick={registerUser} style={registerBtn}>
-            Register
-          </button>
+          {!isLogin && (
+            <button onClick={registerUser} style={registerBtn}>
+              Register
+            </button>
+          )}
 
           <button onClick={loginUser} style={loginBtn}>
             Login
           </button>
         </div>
+
+        <p
+          style={{
+            textAlign: "center",
+            marginTop: "15px",
+            cursor: "pointer",
+            color: "#1e88e5",
+            fontWeight: "bold",
+          }}
+          onClick={() => setIsLogin(!isLogin)}
+        >
+          {isLogin
+            ? "Don't have an account? Register"
+            : "Already have an account? Login"}
+        </p>
 
         {message && (
           <p style={{ marginTop: "15px", textAlign: "center", color: "red" }}>
@@ -173,7 +201,7 @@ const inputStyle = {
   borderRadius: "6px",
   border: "1px solid #ccc",
   background: "#f5f7fa",
-  color:"black",
+  color: "black",
 };
 
 const buttonRow = {

@@ -9,6 +9,7 @@ const createAppointment = async (req, res) => {
       patient: req.user._id,
       doctor: req.body.doctor,
       date: req.body.date,
+      slot: req.body.slot,
       reason: req.body.reason
     });
 
