@@ -25,7 +25,19 @@ const createAppointment = async (req, res) => {
 const getAppointments = async (req, res) => {
   try {
 
-    const appointments = await Appointment.find()
+    const { date } = req.query;
+
+    let filter = {};
+
+    if (date) {
+      const start = new Date(date);
+      const end = new Date(date);
+      end.setHours(23, 59, 59, 999);
+
+      filter.date = { $gte: start, $lte: end };
+    }
+
+    const appointments = await Appointment.find(filter)
       .populate("patient", "name email")
       .populate("doctor", "name email");
 
@@ -52,7 +64,7 @@ const getDoctorAppointments = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
+ 
 
 // ⭐ UPDATE APPOINTMENT STATUS
 const updateAppointmentStatus = async (req, res) => {
