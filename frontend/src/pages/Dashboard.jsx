@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import WeeklyChart from "../components/WeeklyChart";
 
 function Dashboard() {
   const [appointments, setAppointments] = useState([]);
@@ -64,15 +65,6 @@ function Dashboard() {
         {/* Header */}
         <h2>Receptionist - {name} Dashboard</h2>
 
-        {/* Date Picker */}
-        {/* <input
-          type="date"
-          onChange={(e) => {
-            setSelectedDate(e.target.value);
-            fetchAppointments(e.target.value);
-          }}
-          style={styles.date}
-        /> */}
         <h2>Appointments Overview</h2>
 
         <div style={styles.content}>
@@ -128,6 +120,9 @@ function Dashboard() {
                   </div>
                 ))}
               </div>
+            </div>
+            <div style={{ marginTop: "20px" }}>
+              <WeeklyChart />
             </div>
           </div>
 

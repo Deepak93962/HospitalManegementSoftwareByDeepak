@@ -108,11 +108,48 @@ const updateAppointmentStatus = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+// GET WEEKLY STATS
+const getWeeklyStats = async (req, res) => {
+  try {
+    const startOfWeek = new Date();
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); // Sunday
+    startOfWeek.setHours(0, 0, 0, 0);
 
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 7);
+
+    const appointments = await Appointment.find({
+      date: { $gte: startOfWeek, $lt: endOfWeek }
+    });
+    console.log("Appointments 👉", appointments); // 🔥 DEBUG
+
+    // Days array
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const data = days.map((day, index) => {
+      const dayData = appointments.filter(a => {
+        return new Date(a.date).getDay() === index;
+      });
+
+      return {
+        day,
+        noShow: dayData.filter(a => a.status === "Cancelled").length,
+        reschedule: dayData.filter(a => a.status === "Pending").length,
+        attended: dayData.filter(a => a.status === "Confirmed").length
+      };
+    });
+
+    res.json(data);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 module.exports = {
   createAppointment,
   getAppointments,
   getDoctorAppointments,
+  getWeeklyStats,
   updateAppointmentStatus
 };
