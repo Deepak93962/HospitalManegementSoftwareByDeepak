@@ -1,132 +1,31 @@
-// import { useNavigate } from "react-router-dom";
-
-// function Dashboard() {
-//   const navigate = useNavigate();
-
-//   const logout = () => {
-//     localStorage.removeItem("token");
-//     navigate("/");
-//   };
-
-//   return (
-//     <div style={{ display: "flex", height: "100vh", fontFamily: "Arial" }}>
-//       {/* Sidebar */}
-//       <div
-//         style={{
-//           width: "250px",
-//           background: "#111827",
-//           color: "white",
-//           padding: "20px",
-//         }}
-//       >
-//         <h2>Hospital</h2>
-
-//         <button
-//           style={{ width: "100%", marginTop: "20px" }}
-//           onClick={() => navigate("/dashboard")}
-//         >
-//           Dashboard
-//         </button>
-
-//         <button
-//           style={{ width: "100%", marginTop: "10px" }}
-//           onClick={() => navigate("/appointment")}
-//         >
-//           Book Appointment
-//         </button>
-
-//         <button
-//           style={{ width: "100%", marginTop: "10px" }}
-//           onClick={() => navigate("/appointments")}
-//         >
-//           My Appointments
-//         </button>
-
-//         <button style={{ width: "100%", marginTop: "10px" }} onClick={logout}>
-//           Logout
-//         </button>
-//       </div>
-
-//       {/* Main Content */}
-//       <div style={{ flex: 1, padding: "40px" }}>
-//         <h1>Hospital Dashboard</h1>
-//         <p>Welcome to Hospital Management System</p>
-
-//         <div style={{ display: "flex", gap: "20px", marginTop: "30px" }}>
-//           <div
-//             style={{
-//               background: "#2563eb",
-//               color: "white",
-//               padding: "20px",
-//               borderRadius: "8px",
-//               width: "200px",
-//             }}
-//           >
-//             <h3>Appointments</h3>
-//             <p>View your bookings</p>
-//           </div>
-
-//           <div
-//             style={{
-//               background: "#16a34a",
-//               color: "white",
-//               padding: "20px",
-//               borderRadius: "8px",
-//               width: "200px",
-//             }}
-//           >
-//             <h3>Doctors</h3>
-//             <p>Available doctors</p>
-//           </div>
-
-//           <div
-//             style={{
-//               background: "#ea580c",
-//               color: "white",
-//               padding: "20px",
-//               borderRadius: "8px",
-//               width: "200px",
-//             }}
-//           >
-//             <h3>Patients</h3>
-//             <p>Hospital records</p>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default Dashboard;
+ 
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
 function Dashboard() {
-
   const [appointments, setAppointments] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
 
   const name = localStorage.getItem("name");
   const [date, setDate] = useState(new Date());
 
+  // calendar
   const handleDateChange = (value) => {
     setDate(value);
-
-    // convert to yyyy-mm-dd
-    const formatted = value.toISOString().split("T")[0];
-
-    fetchAppointments(formatted);
+    const localDate = value.toLocaleDateString("en-CA");
+    fetchAppointments(localDate);
   };
 
+  // on load
   useEffect(() => {
-    fetchAppointments();
+    const today = new Date().toLocaleDateString("en-CA");
+    fetchAppointments(today);
   }, []);
 
   // ✅ Fetch with date filter
   const fetchAppointments = async (date = "") => {
-
     const token = localStorage.getItem("token");
 
     const url = date
@@ -135,8 +34,8 @@ function Dashboard() {
 
     const res = await axios.get(url, {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     setAppointments(res.data);
@@ -144,15 +43,13 @@ function Dashboard() {
 
   // ✅ Stats
   const total = appointments.length;
-  const confirmed = appointments.filter(a => a.status === "Confirmed").length;
-  const pending = appointments.filter(a => a.status === "Pending").length;
-  const cancelled = appointments.filter(a => a.status === "Cancelled").length;
+  const confirmed = appointments.filter((a) => a.status === "Confirmed").length;
+  const pending = appointments.filter((a) => a.status === "Pending").length;
+  const cancelled = appointments.filter((a) => a.status === "Cancelled").length;
 
   // ✅ Unique doctors
   const uniqueDoctors = [
-    ...new Map(
-      appointments.map(a => [a.doctor?._id, a.doctor])
-    ).values()
+    ...new Map(appointments.map((a) => [a.doctor?._id, a.doctor])).values(),
   ];
 
   return (
@@ -249,8 +146,6 @@ function Dashboard() {
                 style={{ width: "100%", padding: "8px" }}
               /> */}
               <div style={styles.box}>
-                 
-
                 <Calendar onChange={handleDateChange} value={date} />
               </div>
             </div>

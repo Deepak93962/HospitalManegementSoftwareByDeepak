@@ -126,6 +126,7 @@ function Appointment() {
           name="date"
           value={form.date}
           onChange={handleChange}
+          min={new Date().toISOString().split("T")[0]}
           style={styles.input}
         />
 

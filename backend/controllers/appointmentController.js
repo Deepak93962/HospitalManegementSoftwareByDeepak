@@ -4,6 +4,20 @@ const Appointment = require("../models/Appointment");
 // CREATE APPOINTMENT (Patient books)
 const createAppointment = async (req, res) => {
   try {
+    const { date } = req.body;
+
+    // 🔥 Today date (without time)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const selectedDate = new Date(date);
+
+    // ❌ Past date check
+    if (selectedDate < today) {
+      return res.status(400).json({
+        message: "Cannot book appointment for past dates"
+      });
+    }
 
     const appointment = await Appointment.create({
       patient: req.user._id,
@@ -30,12 +44,15 @@ const getAppointments = async (req, res) => {
     let filter = {};
 
     if (date) {
-      const start = new Date(date);
-      const end = new Date(date);
-      end.setHours(23, 59, 59, 999);
+  const start = new Date(date);
+  const end = new Date(date);
+  end.setDate(end.getDate() + 1);
 
-      filter.date = { $gte: start, $lte: end };
-    }
+  filter.date = {
+    $gte: start,
+    $lt: end
+  };
+}
 
     const appointments = await Appointment.find(filter)
       .populate("patient", "name email")
