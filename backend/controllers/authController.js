@@ -37,13 +37,32 @@ const registerUser = asyncHandler(async (req, res) => {
   user.verificationTokenExpire = Date.now() + 15 * 60 * 1000; // Exact 15 minutes expiry constraint
   
   // NOTE: Pre-save hook hashes password, but only triggers if modified.
-  // Wait, saving here triggers the password pre-save a SECOND time if we don't handle it properly. 
-  // Good thing our pre-save has `!this.isModified('password') return next();` logic protecting it!
   await user.save();
 
-  // MOCK EMAIL SEND OVER CONSOLE DEPLOYMENT
   const verificationUrl = `http://localhost:5173/verify-email/${verifyToken}`;
-  console.log(`\n\n[DEV-ONLY] VERIFICATION LINK FOR ${user.email}:\n${verificationUrl}\n\n`);
+  const message = `
+    <h2>Welcome to Clinify HMS</h2>
+    <p>Please verify your email address by clicking the link below:</p>
+    <a href="${verificationUrl}" target="_blank">${verificationUrl}</a>
+    <p>This verification link will expire in 15 minutes.</p>
+    <br/>
+    <p>If you did not request this, please ignore this email.</p>
+  `;
+
+  const sendEmail = require('../utils/sendEmail');
+  try {
+    const emailSent = await sendEmail({
+      email: user.email,
+      subject: 'Clinify HMS - Action Required: Email Verification',
+      message
+    });
+
+    if (!emailSent) {
+      console.log(`\n\n[DEV-ONLY FALLBACK] VERIFICATION LINK FOR ${user.email}:\n${verificationUrl}\n\n`);
+    }
+  } catch (error) {
+    console.log(`\n\n[DEV-ONLY FALLBACK] VERIFICATION LINK FOR ${user.email}:\n${verificationUrl}\n\n`);
+  }
 
   res.status(201).json({ message: "Verification link sent to your email" });
 });
@@ -104,8 +123,31 @@ const forgotPassword = asyncHandler(async (req, res) => {
     return res.status(403).json({ message: "Please verify your email first" });
   }
 
-  // Allow through natively and mock reset token
-  res.status(200).json({ message: "Password reset link sent to your email (Mocked)" });
+  const resetUrl = `http://localhost:5173/reset-password/mock-token`; // Standard mocked link for now
+
+  const message = `
+    <h2>Clinify HMS - Password Reset</h2>
+    <p>You requested a password reset. Please click the link below to set a new password:</p>
+    <a href="${resetUrl}" target="_blank">Reset Password</a>
+    <p>If you did not request this, please ignore this email.</p>
+  `;
+
+  const sendEmail = require('../utils/sendEmail');
+  try {
+    const emailSent = await sendEmail({
+      email: user.email,
+      subject: 'Clinify HMS - Password Reset Request',
+      message
+    });
+
+    if (!emailSent) {
+      console.log(`\n\n[DEV-ONLY FALLBACK] RESET LINK FOR ${user.email}:\n${resetUrl}\n\n`);
+    }
+  } catch (error) {
+    console.log(`\n\n[DEV-ONLY FALLBACK] RESET LINK FOR ${user.email}:\n${resetUrl}\n\n`);
+  }
+
+  res.status(200).json({ message: "Password reset link sent to your email" });
 });
 
 module.exports = { registerUser, loginUser, verifyEmail, forgotPassword };
