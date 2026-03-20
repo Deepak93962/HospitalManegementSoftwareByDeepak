@@ -54,9 +54,27 @@ function RegisterLogin() {
     } catch (err) {
       if (err.response?.status === 403) {
         setMessage({ text: err.response?.data?.message || "Please verify your email before login", type: "error" });
+        setMode("verifyPrompt");
       } else {
         setMessage({ text: err.response?.data?.message || "Invalid credentials", type: "error" });
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resendVerification = async () => {
+    if (!form.email) {
+      setMessage({ text: "Please provide an email address", type: "error" });
+      return;
+    }
+    setLoading(true);
+    setMessage("");
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/resend-verification", { email: form.email });
+      setMessage({ text: res.data.message || "Verification link resent successfully", type: "success" });
+    } catch (err) {
+      setMessage({ text: err.response?.data?.message || "Error resending link", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -121,13 +139,27 @@ function RegisterLogin() {
                   </div>
                 </div>
                 {message && (
-                  <div className="rounded-md p-3 text-sm bg-blue-50 font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                  <div className={`rounded-md p-3 text-sm font-medium ${message.type === 'error' ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300' : 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}`}>
                     {message.text}
                   </div>
                 )}
-                <Button onClick={() => { setMode("login"); setMessage(""); }} className="w-full mt-4">
-                  Return to Login
-                </Button>
+                <div className="flex flex-col gap-3 mt-4">
+                  <Button 
+                    onClick={resendVerification} 
+                    type="button"
+                    className="w-full bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 shadow-none border border-slate-200 dark:border-slate-700" 
+                    disabled={loading}
+                  >
+                    {loading ? "Sending..." : "Resend Verification Email"}
+                  </Button>
+                  <Button 
+                    onClick={() => { setMode("login"); setMessage(""); }} 
+                    type="button"
+                    className="w-full"
+                  >
+                    Return to Login
+                  </Button>
+                </div>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">

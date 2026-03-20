@@ -150,4 +150,47 @@ const forgotPassword = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Password reset link sent to your email" });
 });
 
-module.exports = { registerUser, loginUser, verifyEmail, forgotPassword };
+const resendVerificationEmail = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({ message: "No user found with this email" });
+  }
+
+  if (user.isVerified) {
+    return res.status(400).json({ message: "Email is already verified" });
+  }
+
+  const verifyToken = crypto.randomBytes(20).toString('hex');
+  user.verificationToken = crypto.createHash('sha256').update(verifyToken).digest('hex');
+  user.verificationTokenExpire = Date.now() + 15 * 60 * 1000;
+  await user.save();
+
+  const verificationUrl = `http://localhost:5173/verify-email/${verifyToken}`;
+  const message = `
+    <h2>Clinify HMS - Resend Verification</h2>
+    <p>Please verify your email address by clicking the link below:</p>
+    <a href="${verificationUrl}" target="_blank">${verificationUrl}</a>
+    <p>This verification link will expire in 15 minutes.</p>
+  `;
+
+  const sendEmail = require('../utils/sendEmail');
+  try {
+    const emailSent = await sendEmail({
+      email: user.email,
+      subject: 'Clinify HMS - Action Required: Email Verification',
+      message
+    });
+
+    if (!emailSent) {
+      console.log(`\n\n[DEV-ONLY FALLBACK] RESEND VERIFICATION LINK FOR ${user.email}:\n${verificationUrl}\n\n`);
+    }
+  } catch (error) {
+    console.log(`\n\n[DEV-ONLY FALLBACK] RESEND VERIFICATION LINK FOR ${user.email}:\n${verificationUrl}\n\n`);
+  }
+
+  res.status(200).json({ message: "Verification link resent to your email" });
+});
+
+module.exports = { registerUser, loginUser, verifyEmail, forgotPassword, resendVerificationEmail };
