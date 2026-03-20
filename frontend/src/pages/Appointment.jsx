@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/Card";
+import { Button } from "../components/ui/Button";
+import { Badge } from "../components/ui/Badge";
+import { CalendarDays, Clock, User, FileText } from "lucide-react";
 
 function Appointment() {
   const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   const [form, setForm] = useState({
     doctor: "",
@@ -20,16 +26,14 @@ function Appointment() {
   const fetchDoctors = async () => {
     try {
       const token = localStorage.getItem("token");
-
       const res = await axios.get("http://localhost:5000/api/users/doctors", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
       setDoctors(res.data);
     } catch (error) {
       console.error("Error fetching doctors");
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -39,192 +43,160 @@ function Appointment() {
     let startMinute = 0;
 
     for (let i = 0; i < 20; i++) {
-      // 20 slots
       const start = `${String(startHour).padStart(2, "0")}:${String(startMinute).padStart(2, "0")}`;
-
       let endHour = startHour;
       let endMinute = startMinute + 30;
-
       if (endMinute === 60) {
         endHour += 1;
         endMinute = 0;
       }
-
       const end = `${String(endHour).padStart(2, "0")}:${String(endMinute).padStart(2, "0")}`;
-
       slots.push(`${start} - ${end}`);
-
       startHour = endHour;
       startMinute = endMinute;
     }
-
     return slots;
   };
 
   const slots = generateSlots();
   
-
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const bookAppointment = async () => {
+  const bookAppointment = async (e) => {
+    e.preventDefault();
     if (!form.doctor || !form.date || !form.slot || !form.reason) {
-      setMessage("Please fill all fields");
+      setMessage({ text: "Please fill all fields", type: "error" });
       return;
     }
 
+    setLoading(true);
     try {
       const token = localStorage.getItem("token");
-
       await axios.post("http://localhost:5000/api/appointments", form, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      setMessage("Appointment booked successfully");
-
-      setForm({
-        doctor: "",
-        date: "",
-        slot:"",
-        reason: "",
-      });
+      setMessage({ text: "Appointment booked successfully", type: "success" });
+      setForm({ doctor: "", date: "", slot:"", reason: "" });
     } catch (error) {
-      setMessage(error.response?.data?.message || "Error booking appointment");
+      setMessage({ text: error.response?.data?.message || "Error booking appointment", type: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>Book Appointment</h2>
-
-        <label style={styles.label}>Select Doctor</label>
-        <select
-          name="doctor"
-          value={form.doctor}
-          onChange={handleChange}
-          style={styles.input}
-        >
-          <option value="">Choose Doctor</option>
-
-          {doctors.map((doc) => (
-            <option key={doc._id} value={doc._id}>
-              Dr. {doc.name}
-            </option>
-          ))}
-        </select>
-
-        <label style={styles.label}>Appointment Date</label>
-        <input
-          type="date"
-          name="date"
-          value={form.date}
-          onChange={handleChange}
-          min={new Date().toISOString().split("T")[0]}
-          style={styles.input}
-        />
-
-        <label style={styles.label}>Select Time Slot</label>
-
-        <select
-          name="slot"
-          value={form.slot}
-          onChange={handleChange}
-          style={styles.input}
-        >
-          <option value="">Choose Slot</option>
-
-          {slots.map((slot, index) => (
-            <option key={index} value={slot}>
-              {slot}
-            </option>
-          ))}
-        </select>
-
-        <label style={styles.label}>Reason</label>
-        <input
-          type="text"
-          name="reason"
-          placeholder="Enter reason for appointment"
-          value={form.reason}
-          onChange={handleChange}
-          style={styles.input}
-        />
-
-        <button onClick={bookAppointment} style={styles.button}>
-          Book Appointment
-        </button>
-
-        {message && <p style={styles.message}>{message}</p>}
+    <div className="space-y-6 lg:max-w-4xl mx-auto">
+      <div className="flex flex-col space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Book Appointment</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Schedule your next visit with our medical professionals.</p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Appointment Details</CardTitle>
+          <CardDescription>Fill in the required information to make a new booking.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={bookAppointment} className="space-y-6">
+            
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-slate-300 flex items-center gap-2">
+                  <User className="w-4 h-4 text-slate-500" /> Select Doctor
+                </label>
+                <select
+                  name="doctor"
+                  value={form.doctor}
+                  onChange={handleChange}
+                  className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:text-slate-50 dark:bg-slate-800 transition-colors"
+                  required
+                >
+                  <option value="">Choose Doctor</option>
+                  {fetching ? (
+                    <option disabled>Loading...</option>
+                  ) : (
+                    doctors.map((doc) => (
+                      <option key={doc._id} value={doc._id}>
+                        Dr. {doc.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-slate-300 flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-slate-500" /> Appointment Date
+                </label>
+                <input
+                  type="date"
+                  name="date"
+                  value={form.date}
+                  onChange={handleChange}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:text-slate-50 dark:bg-slate-800 transition-colors [color-scheme:light] dark:[color-scheme:dark]"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-slate-300 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-slate-500" /> Time Slot
+                </label>
+                <select
+                  name="slot"
+                  value={form.slot}
+                  onChange={handleChange}
+                  className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:text-slate-50 dark:bg-slate-800 transition-colors"
+                  required
+                >
+                  <option value="">Choose Slot</option>
+                  {slots.map((slot, index) => (
+                    <option key={index} value={slot}>{slot}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-slate-300 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-slate-500" /> Reason for Visit
+                </label>
+                <input
+                  type="text"
+                  name="reason"
+                  placeholder="e.g. Regular Checkup, Fever..."
+                  value={form.reason}
+                  onChange={handleChange}
+                  className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:text-slate-50 dark:bg-slate-800 transition-colors"
+                  required
+                />
+              </div>
+            </div>
+
+            {message && (
+              <div className={`p-4 rounded-md flex items-center gap-3 ${message.type === 'error' ? 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-300' : 'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-300'}`}>
+                {message.type === 'error' ? (
+                  <Badge variant="danger">Error</Badge>  
+                ) : (
+                  <Badge variant="success">Success</Badge>
+                )}
+                <span className="text-sm font-medium">{message.text}</span>
+              </div>
+            )}
+
+            <div className="pt-4 flex justify-end">
+              <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+                {loading ? "Booking..." : "Confirm Appointment"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
-
-const styles = {
-  page: {
-    height: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "#eef4ff",
-    fontFamily: "Arial",
-  },
-
-  card: {
-    width: "400px",
-    background: "white",
-    padding: "35px",
-    borderRadius: "10px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-  },
-
-  title: {
-    textAlign: "center",
-    marginBottom: "25px",
-    color: "#2563eb",
-  },
-
-  label: {
-    fontSize: "14px",
-    fontWeight: "bold",
-    marginBottom: "5px",
-    display: "block",
-  },
-
-  input: {
-    width: "100%",
-    padding: "10px",
-    marginBottom: "15px",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-    fontSize: "14px",
-  },
-
-  button: {
-    width: "100%",
-    padding: "12px",
-    background: "#2563eb",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    fontSize: "16px",
-    cursor: "pointer",
-    transition: "0.3s",
-  },
-
-  message: {
-    marginTop: "15px",
-    textAlign: "center",
-    color: "#2563eb",
-    fontWeight: "bold",
-  },
-};
 
 export default Appointment;

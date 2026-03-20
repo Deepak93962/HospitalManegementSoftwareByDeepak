@@ -7,27 +7,26 @@ const {
   getDoctorAppointments,
   updateAppointmentStatus,
   getWeeklyStats,
+  createAppointmentByReceptionist
 } = require("../controllers/appointmentController");
 
 const { protect } = require("../middleware/auth");
 
-
 // Patient books appointment
 router.post("/", protect, createAppointment);
 
+// ⭐ Receptionist books appointment for walk-in patients
+router.post("/receptionist", protect, createAppointmentByReceptionist);
 
 // Admin / Receptionist see all appointments
 router.get("/", protect, getAppointments);
 
-
 // ⭐ Doctor see only his appointments
 router.get("/doctor", protect, getDoctorAppointments);
-
 
 // ⭐ Doctor update appointment status
 router.put("/:id/status", protect, updateAppointmentStatus);
 
 router.get("/weekly", protect, getWeeklyStats);
-
 
 module.exports = router;

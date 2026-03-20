@@ -6,6 +6,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const appointmentRoutes = require("./routes/appointmentRoutes");
 const userRoutes = require("./routes/userRoutes");
+const patientRoutes = require("./routes/patientRoutes");
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/patients", patientRoutes);
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'HMS API is running' });
 });

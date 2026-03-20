@@ -1,5 +1,5 @@
 const Appointment = require("../models/Appointment");
-
+const Patient = require("../models/Pateint");
 
 // CREATE APPOINTMENT (Patient books)
 const createAppointment = async (req, res) => {
@@ -21,14 +21,81 @@ const createAppointment = async (req, res) => {
 
     const appointment = await Appointment.create({
       patient: req.user._id,
+      patientModel: 'User',
       doctor: req.body.doctor,
       date: req.body.date,
       slot: req.body.slot,
-      reason: req.body.reason
+      reason: req.body.reason,
+      createdByRole: 'patient'
     });
 
     res.status(201).json(appointment);
 
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// CREATE APPOINTMENT (Receptionist books)
+const createAppointmentByReceptionist = async (req, res) => {
+  try {
+    // 1. Role check
+    if (req.user.role !== "Receptionist" && req.user.role !== "Admin") {
+      return res.status(403).json({ message: "Access denied. Action allowed only for authorized staff." });
+    }
+
+    const { name, age, gender, contact, email, address, doctor, date, slot, reason } = req.body;
+
+    // 2. Comprehensive validation
+    if (!name || !age || !gender || !contact || !doctor || !date || !slot || !reason) {
+      return res.status(400).json({ message: "Please provide all required fields." });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(date);
+    if (selectedDate < today) {
+      return res.status(400).json({ message: "Cannot book appointment for past dates." });
+    }
+
+    // 3. Prevent double booking of slot by same doctor
+    const existingAppointment = await Appointment.findOne({
+      doctor,
+      date: selectedDate,
+      slot,
+      status: { $ne: 'Cancelled' }
+    });
+
+    if (existingAppointment) {
+      return res.status(400).json({ message: `Dr. selected is already booked for ${slot} on this date.` });
+    }
+
+    // 4. Duplicate patient check by contact
+    let patientObj = await Patient.findOne({ contact });
+    if (!patientObj) {
+      patientObj = await Patient.create({
+        name,
+        age,
+        gender,
+        contact,
+        email: email || '',
+        address: address || '',
+        createdBy: req.user._id
+      });
+    }
+
+    // 5. Create Appointment with dynamic ref
+    const appointment = await Appointment.create({
+      patient: patientObj._id,
+      patientModel: 'Patient',
+      doctor,
+      date: selectedDate,
+      slot,
+      reason,
+      createdByRole: 'receptionist'
+    });
+
+    res.status(201).json({ message: "Appointment booked successfully", appointment });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -151,5 +218,6 @@ module.exports = {
   getAppointments,
   getDoctorAppointments,
   getWeeklyStats,
-  updateAppointmentStatus
+  updateAppointmentStatus,
+  createAppointmentByReceptionist
 };
